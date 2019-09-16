@@ -9,7 +9,7 @@ import formula.api.user.User;
 public class RootController {
 	
 	@RequestMapping("/")
-	public void run() {
-		System.out.println("execute run");
+	public String index() {
+		return "Greetings from formula";
 	}
 }
