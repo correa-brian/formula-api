@@ -35,5 +35,5 @@ dependencies {
 
 application {
     // Define the main class for the application
-    mainClassName = 'com.formula.App'
+    mainClassName = 'com.formula.api.App'
 }
