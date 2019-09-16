@@ -28,7 +28,7 @@ dependencies {
 	
 	// Sprint boot stuff
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-test'
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
 }
