@@ -1,9 +1,9 @@
-package formula.api;
+package com.formula.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import formula.api.user.User;
+import com.formula.model.User;
 
 @RestController
 public class RootController {

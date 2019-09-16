@@ -4,6 +4,9 @@
 package formula.api;
 
 import org.junit.Test;
+
+import com.formula.App;
+
 import static org.junit.Assert.*;
 
 public class AppTest {

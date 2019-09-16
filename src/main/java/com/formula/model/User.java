@@ -1,4 +1,4 @@
-package formula.api.user;
+package com.formula.model;
 
 public class User {
 	private long id;
