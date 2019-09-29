@@ -1,21 +1,28 @@
 # Formula API
 
-## To run
-Using Gradle wrapper
-
+### Setup: 
 ```
 ./gradlew build
 ./gradlew run
 ```
 
-Run executable .jar after build command
+
+### Executable jar
 
 ```
+./gradlew build
 cd build/libs
 java -jar formula-api.jar
 ```
 
-## Invesitgate container FS
+#### docker-compose
+```
+docker-compose up
+```
+
+- visit localhost:8080
+
+#### Debug container FS
 
 ```
  docker run -it -p 8080:8080 formula-api sh
