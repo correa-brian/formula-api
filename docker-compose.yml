@@ -1,0 +1,8 @@
+version: '3'
+services:
+   server:
+      image: formula-api:latest
+      build:
+        context: .
+      ports:
+        - "5000:8080"
