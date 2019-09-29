@@ -1,13 +1,26 @@
 # Formula API
 
 ### Setup: 
+- Clone the repository
+- Start the webserver
+
+```
+docker-compose up
+```
+
+- Access API at http:localhost:8080
+
+#### Extra Commands / Resources
+
+- Using gradle wrapper 
+
 ```
 ./gradlew build
 ./gradlew run
 ```
 
 
-### Executable jar
+- Via executable jar
 
 ```
 ./gradlew build
@@ -15,14 +28,7 @@ cd build/libs
 java -jar formula-api.jar
 ```
 
-#### docker-compose
-```
-docker-compose up
-```
-
-- visit localhost:8080
-
-#### Debug container FS
+- Debugging container
 
 ```
  docker run -it -p 8080:8080 formula-api sh
