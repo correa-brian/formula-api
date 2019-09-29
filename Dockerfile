@@ -7,8 +7,6 @@ RUN ./gradlew build -x :bootJar -x test --continue
 COPY . .
 RUN ./gradlew build
 
-FROM ubuntu:16.04
-WORKDIR /opt/java-app
-COPY --from=BUILD_STAGE /app/build/libs/ .
 EXPOSE 8080
-CMD ["java","-jar","formula-api.jar"]
+
+CMD ["java", "-jar", "build/libs/formula-api.jar"]
