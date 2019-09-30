@@ -1,6 +1,6 @@
 # Formula API
 
-### Setup: 
+### Setup 
 - Clone the repository
 - Start the webserver
 
