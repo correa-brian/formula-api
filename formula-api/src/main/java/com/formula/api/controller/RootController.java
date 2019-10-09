@@ -10,4 +10,5 @@ public class RootController {
 	public String index() {
 		return "Greetings from formula";
 	}
+
 }
