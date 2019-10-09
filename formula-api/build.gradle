@@ -7,33 +7,36 @@
  */
 
 plugins {
-    // Apply the java plugin to add support for Java
-    id 'java'
+	// Apply the java plugin to add support for Java
+	id 'java'
 	id 'eclipse'
-    // Apply the application plugin to add support for building a CLI application
-    id 'application'
-    id "org.springframework.boot" version "2.1.8.RELEASE"
-    id "io.spring.dependency-management" version "1.0.8.RELEASE"
+	// Apply the application plugin to add support for building a CLI application
+	id 'application'
+	
+	id "org.springframework.boot" version "2.1.8.RELEASE"
+	id "io.spring.dependency-management" version "1.0.8.RELEASE"
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    jcenter()
-    mavenCentral()
+	// Use jcenter for resolving dependencies.
+	jcenter()
+	mavenCentral()
 }
 
 dependencies {
-    // This dependency is used by the application.
-    implementation 'com.google.guava:guava:28.0-jre'
+	// This dependency is used by the application.
+	implementation 'com.google.guava:guava:28.0-jre'
 	
 	// Sprint boot stuff
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-test'
-    // Use JUnit test framework
-    testImplementation 'junit:junit:4.12'
+	runtimeOnly 'mysql:mysql-connector-java'
+	// Use JUnit test framework
+	testImplementation 'junit:junit:4.12'
 }
 
 application {
-    // Define the main class for the application
-    mainClassName = 'com.formula.api.App'
+	// Define the main class for the application
+	mainClassName = 'com.formula.api.App'
 }
