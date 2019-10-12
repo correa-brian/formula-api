@@ -21,6 +21,8 @@ public class User {
 
 	private String firstName;
 	private String lastName;
+	private boolean active;
+	private boolean deleted;
 	private String email;
 	private String password;
 
@@ -29,8 +31,24 @@ public class User {
 	@Generated(GenerationTime.INSERT)
 	private Timestamp updatedAt;
 
-	public Integer getId() {
+	public int getId() {
 		return id;
+	}
+
+	public boolean getActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public boolean getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 
 	public String getFirstName() {
