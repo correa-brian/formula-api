@@ -29,7 +29,7 @@ public class CustomerController {
 
 	@GetMapping("/customer/{id}")
 	public ResponseEntity<Object> getCustomerById(@PathVariable(value = "id") int customerId)
-			throws Exception {
+			throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(customerId));

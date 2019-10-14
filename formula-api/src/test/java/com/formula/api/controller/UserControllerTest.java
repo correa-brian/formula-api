@@ -11,20 +11,17 @@ import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import com.formula.api.exception.ResourceNotFoundException;
 import com.formula.api.model.User;
 import com.formula.api.repository.UserRepository;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 public class UserControllerTest {
 	@InjectMocks
