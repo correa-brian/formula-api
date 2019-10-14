@@ -55,7 +55,7 @@ public class CustomerController {
 		Customer newCustomer = customerRepository.save(customer);
 
 		body.put("status", HttpStatus.OK.value());
-		body.put("user", newCustomer);
+		body.put("customer", newCustomer);
 		return new ResponseEntity<Object>(body, HttpStatus.OK);
 	}
 
@@ -89,7 +89,7 @@ public class CustomerController {
 		Customer updatedCustomer = customerRepository.save(customer);
 
 		body.put("status", HttpStatus.OK.value());
-		body.put("user", updatedCustomer);
+		body.put("customer", updatedCustomer);
 		return new ResponseEntity<Object>(body, HttpStatus.OK);
 	}
 
