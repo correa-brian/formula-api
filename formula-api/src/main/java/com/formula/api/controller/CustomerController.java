@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.formula.api.exception.UserNotFoundException;
+import com.formula.api.exception.ResourceNotFoundException;
 import com.formula.api.model.Customer;
 import com.formula.api.repository.CustomerRepository;
 
@@ -29,10 +29,10 @@ public class CustomerController {
 
 	@GetMapping("/customer/{id}")
 	public ResponseEntity<Object> getCustomerById(@PathVariable(value = "id") int customerId)
-			throws UserNotFoundException {
+			throws Exception {
 		Map<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> new UserNotFoundException(customerId));
+				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customer", customer);
@@ -61,10 +61,10 @@ public class CustomerController {
 
 	@PutMapping("/customer/{id}")
 	public ResponseEntity<Object> updateCustomer(@PathVariable(value = "id") int customerId,
-			@Valid @RequestBody Customer customerDetails) throws UserNotFoundException {
+			@Valid @RequestBody Customer customerDetails) throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> new UserNotFoundException(customerId));
+				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
 		customer.setFirstName(customerDetails.getFirstName());
 		customer.setLastName(customerDetails.getLastName());
@@ -79,10 +79,10 @@ public class CustomerController {
 
 	@DeleteMapping("/customer/{id}")
 	public ResponseEntity<Object> deleteCustomer(@PathVariable(value = "id") int customerId)
-			throws UserNotFoundException {
+			throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
-				.orElseThrow(() -> new UserNotFoundException(customerId));
+				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
 		customer.setActive(false);
 		customer.setDeleted(true);
@@ -92,6 +92,5 @@ public class CustomerController {
 		body.put("user", updatedCustomer);
 		return new ResponseEntity<Object>(body, HttpStatus.OK);
 	}
-
 
 }

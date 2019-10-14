@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.formula.api.exception.UserNotFoundException;
+import com.formula.api.exception.ResourceNotFoundException;
 import com.formula.api.model.User;
 import com.formula.api.repository.UserRepository;
 
@@ -28,9 +28,9 @@ public class UserController {
 	private UserRepository userRepository;
 
 	@GetMapping("/user/{id}")
-	public ResponseEntity<Object> getUserById(@PathVariable(value = "id") int userId) throws UserNotFoundException {
+	public ResponseEntity<Object> getUserById(@PathVariable(value = "id") int userId) throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
-		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+		User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(userId));
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("user", user);
@@ -60,10 +60,10 @@ public class UserController {
 	@PutMapping("/user/{id}")
 	public ResponseEntity<Object> updateUser(@PathVariable(value = "id") int userId,
 			@Valid @RequestBody User userDetails)
-			throws UserNotFoundException {
+			throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new UserNotFoundException(userId));
+				.orElseThrow(() -> new ResourceNotFoundException(userId));
 				
 		user.setFirstName(userDetails.getFirstName());
 		user.setLastName(userDetails.getLastName());
@@ -76,10 +76,10 @@ public class UserController {
 	}
 
 	@DeleteMapping("/user/{id}")
-	public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") int userId) throws UserNotFoundException {
+	public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") int userId) throws ResourceNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new UserNotFoundException(userId));
+				.orElseThrow(() -> new ResourceNotFoundException(userId));
 
 		user.setActive(false);
 		user.setDeleted(true);
