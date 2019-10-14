@@ -1,6 +1,7 @@
 package com.formula.api.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -41,21 +42,99 @@ public class UserControllerTest {
 		u.setId(1);
 		when(userRepository.findById(1)).thenReturn(Optional.of(u));
 
-		ResponseEntity<Object> user = userController.getUserById(1);
-		HashMap body = (HashMap) user.getBody();
-		assertEquals(user.getStatusCode(), HttpStatus.OK);
+		ResponseEntity<HashMap<String, Object>> response = userController.getUserById(1);
+		HashMap<String, Object> body = response.getBody();
+		User user = (User) body.get("user");
+
+		assertEquals(response.getStatusCode(), HttpStatus.OK);
 		assertTrue(body.get("user").equals(u));
+		assertEquals(user.getId(), 1);
+		assertTrue(user.isActive());
+		assertFalse(user.isDeleted());
 		assertEquals(body.get("status"), HttpStatus.OK.value());
 	}
 
 	@Test
-	public void testGetAllUser() throws ResourceNotFoundException {
+	public void testGetAllUsers() throws ResourceNotFoundException {
 		List<User> u = new ArrayList<User>();
 		when(userRepository.findAll()).thenReturn(u);
 
-		// TODO: validate all user response.
+		ResponseEntity<HashMap<String, Object>> response = userController.getAllUsers();
+		HashMap<String, Object> body = response.getBody();
+
+		assertEquals(response.getStatusCode(), HttpStatus.OK);
+		assertTrue(body.get("users").equals(u));
+		assertEquals(body.get("status"), HttpStatus.OK.value());
 	}
 
-	// TODO: Test POST, PUT, DELETE methods
+	@Test
+	public void testCreateUser() {
+		User u = new User();
+		u.setEmail("sample@gmail.com");
+		u.setFirstName("test");
+		u.setLastName("name");
+
+		when(userRepository.save(u)).thenReturn(u);
+		ResponseEntity<HashMap<String, Object>> response = userController.createUser(u);
+		HashMap<String, Object> body = response.getBody();
+		User user = (User) body.get("user");
+
+		assertEquals(response.getStatusCode(), HttpStatus.OK);
+		assertTrue(body.get("user").equals(u));
+		assertEquals(user.getFirstName(), "test");
+		assertEquals(user.getLastName(), "name");
+		assertEquals(user.getEmail(), "sample@gmail.com");
+		assertEquals(body.get("status"), HttpStatus.OK.value());
+	}
+
+	@Test
+	public void testUpdateUser() throws ResourceNotFoundException {
+		User u = new User();
+		u.setId(2);
+		u.setEmail("f@gmail.com");
+		u.setFirstName("faux");
+		u.setLastName("name");
+
+		User updatedUser = new User();
+		updatedUser.setId(2);
+		updatedUser.setEmail("new email");
+		updatedUser.setFirstName("new first name");
+		updatedUser.setLastName("new last name");
+
+		when(userRepository.findById(2)).thenReturn(Optional.of(u));
+		when(userRepository.save(u)).thenReturn(u);
+
+		ResponseEntity<HashMap<String, Object>> response = userController.updateUser(2, updatedUser);
+		HashMap<String, Object> body = response.getBody();
+		User user = (User) body.get("user");
+
+		assertEquals(response.getStatusCode(), HttpStatus.OK);
+		assertTrue(body.get("user").equals(user));
+		assertEquals(user.getId(), 2);
+		assertTrue(user.isActive());
+		assertFalse(user.isDeleted());
+		assertEquals(user.getEmail(), "new email");
+		assertEquals(body.get("status"), HttpStatus.OK.value());
+	}
+
+	@Test
+	public void testDeleteUser() throws ResourceNotFoundException {
+		User u = new User();
+		u.setId(2);
+		u.setEmail("f@gmail.com");
+		u.setFirstName("faux");
+		u.setLastName("name");
+
+		when(userRepository.findById(2)).thenReturn(Optional.of(u));
+		when(userRepository.save(u)).thenReturn(u);
+
+		ResponseEntity<HashMap<String, Object>> response = userController.deleteUser(2);
+		HashMap<String, Object> body = response.getBody();
+		User user = (User) body.get("user");
+
+		assertEquals(response.getStatusCode(), HttpStatus.OK);
+		assertTrue(user.isDeleted());
+		assertFalse(user.isActive());
+	}
 
 }
