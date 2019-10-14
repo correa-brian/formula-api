@@ -2,7 +2,6 @@ package com.formula.api.controller;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -28,40 +27,41 @@ public class UserController {
 	private UserRepository userRepository;
 
 	@GetMapping("/user/{id}")
-	public ResponseEntity<Object> getUserById(@PathVariable(value = "id") int userId) throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> getUserById(@PathVariable(value = "id") int userId)
+			throws ResourceNotFoundException {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(userId));
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("user", user);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 	
 	@GetMapping("/user/all")
-	public ResponseEntity<Object> getAllUsers() {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> getAllUsers() {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		List<User> users = userRepository.findAll();
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("users", users);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@PostMapping("/user")
-	public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> createUser(@Valid @RequestBody User user) {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		User newUser = userRepository.save(user);
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("user", newUser);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@PutMapping("/user/{id}")
-	public ResponseEntity<Object> updateUser(@PathVariable(value = "id") int userId,
+	public ResponseEntity<HashMap<String, Object>> updateUser(@PathVariable(value = "id") int userId,
 			@Valid @RequestBody User userDetails)
 			throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(userId));
 				
@@ -72,12 +72,13 @@ public class UserController {
 		
 		body.put("status", HttpStatus.OK.value());
 		body.put("user", updatedUser);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/user/{id}")
-	public ResponseEntity<Object> deleteUser(@PathVariable(value = "id") int userId) throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> deleteUser(@PathVariable(value = "id") int userId)
+			throws ResourceNotFoundException {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(userId));
 
@@ -87,7 +88,7 @@ public class UserController {
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("user", updatedUser);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 }

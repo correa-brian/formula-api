@@ -26,7 +26,7 @@ public class User {
 	private String password;
 	@Generated(GenerationTime.INSERT)
 	private Timestamp createdAt;
-	@Generated(GenerationTime.INSERT)
+	@Generated(GenerationTime.ALWAYS)
 	private Timestamp updatedAt;
 
 	public int getId() {
