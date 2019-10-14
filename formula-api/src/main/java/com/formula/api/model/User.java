@@ -18,14 +18,12 @@ public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-
-	private String firstName;
-	private String lastName;
 	private boolean active;
 	private boolean deleted;
+	private String firstName;
+	private String lastName;
 	private String email;
 	private String password;
-
 	@Generated(GenerationTime.INSERT)
 	private Timestamp createdAt;
 	@Generated(GenerationTime.INSERT)
@@ -35,7 +33,7 @@ public class User {
 		return id;
 	}
 
-	public boolean getActive() {
+	public boolean isActive() {
 		return active;
 	}
 
@@ -43,7 +41,7 @@ public class User {
 		this.active = active;
 	}
 
-	public boolean getDeleted() {
+	public boolean isDeleted() {
 		return deleted;
 	}
 

@@ -28,7 +28,7 @@ public class UserController {
 	private UserRepository userRepository;
 
 	@GetMapping("/user/{id}")
-	public ResponseEntity<Object> getNoteById(@PathVariable(value = "id") int userId) throws UserNotFoundException {
+	public ResponseEntity<Object> getUserById(@PathVariable(value = "id") int userId) throws UserNotFoundException {
 		Map<String, Object> body = new HashMap<String, Object>();
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
 
