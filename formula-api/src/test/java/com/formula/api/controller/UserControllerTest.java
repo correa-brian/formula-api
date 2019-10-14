@@ -53,7 +53,6 @@ public class UserControllerTest {
 
 	@Test
 	public void testGetAllUser() throws ResourceNotFoundException {
-		System.out.println("ahhhhhh--------");
 		List<User> u = new ArrayList<User>();
 		when(userRepository.findAll()).thenReturn(u);
 
