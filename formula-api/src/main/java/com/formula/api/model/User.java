@@ -33,6 +33,10 @@ public class User {
 		return id;
 	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public boolean isActive() {
 		return active;
 	}
