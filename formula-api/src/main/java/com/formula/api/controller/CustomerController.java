@@ -2,7 +2,6 @@ package com.formula.api.controller;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -28,41 +27,41 @@ public class CustomerController {
 	private CustomerRepository customerRepository;
 
 	@GetMapping("/customer/{id}")
-	public ResponseEntity<Object> getCustomerById(@PathVariable(value = "id") int customerId)
+	public ResponseEntity<HashMap<String, Object>> getCustomerById(@PathVariable(value = "id") int customerId)
 			throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customer", customer);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@GetMapping("/customer/all")
-	public ResponseEntity<Object> getAllCustomers() {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> getAllCustomers() {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		List<Customer> customers = customerRepository.findAll();
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customers", customers);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@PostMapping("/customer")
-	public ResponseEntity<Object> createCustomer(@Valid @RequestBody Customer customer) {
-		Map<String, Object> body = new HashMap<String, Object>();
+	public ResponseEntity<HashMap<String, Object>> createCustomer(@Valid @RequestBody Customer customer) {
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		Customer newCustomer = customerRepository.save(customer);
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customer", newCustomer);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@PutMapping("/customer/{id}")
-	public ResponseEntity<Object> updateCustomer(@PathVariable(value = "id") int customerId,
+	public ResponseEntity<HashMap<String, Object>> updateCustomer(@PathVariable(value = "id") int customerId,
 			@Valid @RequestBody Customer customerDetails) throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
@@ -74,13 +73,13 @@ public class CustomerController {
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customer", updatedCustomer);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/customer/{id}")
-	public ResponseEntity<Object> deleteCustomer(@PathVariable(value = "id") int customerId)
+	public ResponseEntity<HashMap<String, Object>> deleteCustomer(@PathVariable(value = "id") int customerId)
 			throws ResourceNotFoundException {
-		Map<String, Object> body = new HashMap<String, Object>();
+		HashMap<String, Object> body = new HashMap<String, Object>();
 		Customer customer = customerRepository.findById(customerId)
 				.orElseThrow(() -> new ResourceNotFoundException(customerId));
 
@@ -90,7 +89,7 @@ public class CustomerController {
 
 		body.put("status", HttpStatus.OK.value());
 		body.put("customer", updatedCustomer);
-		return new ResponseEntity<Object>(body, HttpStatus.OK);
+		return new ResponseEntity<HashMap<String, Object>>(body, HttpStatus.OK);
 	}
 
 }

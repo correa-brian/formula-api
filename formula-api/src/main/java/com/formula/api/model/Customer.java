@@ -27,15 +27,11 @@ public class Customer {
 	private String password;
 	@Generated(GenerationTime.INSERT)
 	private Timestamp createdAt;
-	@Generated(GenerationTime.INSERT)
+	@Generated(GenerationTime.ALWAYS)
 	private Timestamp updatedAt;
 
 	public int getId() {
 		return id;
-	}
-
-	public void setId() {
-		this.id = id;
 	}
 
 	public void setId(int id) {
