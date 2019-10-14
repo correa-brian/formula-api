@@ -7,13 +7,24 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class UserTest {
 	private static User user;
 
 	@Before
 	public void setup() {
 		user = new User();
+	}
+
+	@Test
+	public void testGetId() {
+		user.setId(1);
+		assertEquals(user.getId(), 1);
 	}
 
 	@Test
