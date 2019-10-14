@@ -18,8 +18,8 @@ public class Customer {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private boolean active;
-	private boolean deleted;
+	private boolean active = true;
+	private boolean deleted = false;
 	private String firstName;
 	private String lastName;
 	private String email;
