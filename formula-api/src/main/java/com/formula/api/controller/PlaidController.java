@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +42,13 @@ public class PlaidController {
 	private PlaidClient plaidClient;
 
 	public PlaidController() {
-		this.plaidClient = PlaidClient.newBuilder().sandboxBaseUrl().clientIdAndSecret(plaidClientId, plaidSecretKey)
-				.publicKey(plaidPublicKey).logLevel(HttpLoggingInterceptor.Level.BODY).build();
+	}
+
+	@PostConstruct
+	public void init() {
+		this.plaidClient = PlaidClient.newBuilder().sandboxBaseUrl()
+				.clientIdAndSecret(plaidClientId, plaidSecretKey).publicKey(plaidPublicKey)
+				.logLevel(HttpLoggingInterceptor.Level.BODY).build();
 	}
 
 	@RequestMapping(value = "/fetch_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
