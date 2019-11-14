@@ -1,10 +1,25 @@
 package com.formula.api.controller;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.plaid.client.PlaidClient;
+import com.plaid.client.request.ItemPublicTokenExchangeRequest;
+import com.plaid.client.response.ItemPublicTokenExchangeResponse;
+
+import okhttp3.logging.HttpLoggingInterceptor;
 
 @RestController
 public class PlaidController {
@@ -18,67 +33,36 @@ public class PlaidController {
 	@Value("${plaid.client.id}")
 	private String plaidClientId;
 
-	@GetMapping("/plaid")
-	public void run() {
+//	@JsonProperty("public_token")
+//	private String publicToken;
 
-		PlaidClient pc = createPlaidClient();
-	}
+	@RequestMapping(value = "/get_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getAccessToken(@Valid @RequestBody Map<String, Object> body) throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+		
+		String publicToken = (String) body.get("publicToken");
 
-	public PlaidClient createPlaidClient() {
-		System.out.println("createPC!!!");
 		PlaidClient pc = PlaidClient.newBuilder().sandboxBaseUrl().clientIdAndSecret(plaidClientId, plaidSecretKey)
-				.publicKey(plaidPublicKey).build();
+				.publicKey(plaidPublicKey).logLevel(HttpLoggingInterceptor.Level.BODY).build();
 
-//		// Synchronously exchange a Link public_token for an API access_token
-//		// Required request parameters are always Request object constructor arguments
-//		Response<ItemPublicTokenExchangeResponse> response = pc.service()
-//				.itemPublicTokenExchange(new ItemPublicTokenExchangeRequest("the_link_public_token")).execute();
-//
-//		if (response.isSuccessful()) {
-//			accessToken = response.body().getAccessToken();
-//		}
-//
-//		// Asynchronously do the same thing. Useful for potentially long-lived calls.
-//		pc.service().itemPublicTokenExchange(new ItemPublicTokenExchangeRequest(publicToken))
-//				.enqueue(new Callback<ItemPublicTokenExchangeResponse>() {
-//					@Override
-//					public void onResponse(Call<ItemPublicTokenExchangeResponse> call,
-//							Response<ItemPublicTokenExchangeResponse> response) {
-//						if (response.isSuccessful()) {
-//							accessToken = response.body.getAccessToken();
-//						}
-//					}
-//
-//					@Override
-//					public void onFailure(Call<ItemPublicTokenExchangeResponse> call, Throwable t) {
-//						// handle the failure as needed
-//					}
-//				});
-//
-//		// Decoding an unsuccessful response
-//		try {
-//			ErrorResponse errorResponse = pc.parseError(response);
-//		} catch (Exception e) {
-//			// deal with it. you didn't even receive a well-formed JSON error response.
-//		}
-//		
-//		
-//		// Generate a public_token for a given institution ID
-//		// and set of initial products
-//		Response<SandboxPublicTokenCreateResponse> createResponse =
-//		  client().service().sandboxPublicTokenCreate(
-//		    new SandboxPublicTokenCreateRequest(INSTITUTION_ID, 
-//		INITIAL_PRODUCTS)
-//		  ).execute();
-//		// The generated public_token can now be
-//		// exchanged for an access_token
-//		Response<ItemPublicTokenExchangeResponse> exchangeResponse =
-//		  client().service().itemPublicTokenExchange(
-//		    new 
-//		ItemPublicTokenExchangeRequest(createResponse.body().getPublicToken())
-//		  ).execute();
+		// Synchronously exchange a Link public_token for an API access_token
+		// Required request parameters are always Request object constructor arguments
+		retrofit2.Response<ItemPublicTokenExchangeResponse> response = pc.service()
+				.itemPublicTokenExchange(new ItemPublicTokenExchangeRequest(publicToken)).execute();
 
-		return null;
+		String accessToken = "";
+		if (response.isSuccessful()) {
+			accessToken = response.body().getAccessToken();
+		}
+
+		resp.put("status", "success");
+		resp.put("accessToken", accessToken);
+		
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
+
+
+//	public String createPlaidClient() throws IOException {
+
 
 }

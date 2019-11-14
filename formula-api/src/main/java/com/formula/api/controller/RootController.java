@@ -1,14 +1,14 @@
 package com.formula.api.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 
-@RestController
+@Controller
 public class RootController {
 	
-	@RequestMapping("/")
+	@GetMapping("/")
 	public String index() {
-		return "Greetings from formula";
+		return "index";
 	}
 
 }
