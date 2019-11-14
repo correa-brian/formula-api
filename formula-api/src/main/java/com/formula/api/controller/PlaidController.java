@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.plaid.client.PlaidClient;
+import com.plaid.client.request.ItemPublicTokenCreateRequest;
 import com.plaid.client.request.ItemPublicTokenExchangeRequest;
+import com.plaid.client.response.ItemPublicTokenCreateResponse;
 import com.plaid.client.response.ItemPublicTokenExchangeResponse;
 
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Response;
 
 @RestController
 public class PlaidController {
@@ -33,36 +36,58 @@ public class PlaidController {
 	@Value("${plaid.client.id}")
 	private String plaidClientId;
 
-//	@JsonProperty("public_token")
-//	private String publicToken;
+	private String accessToken = "";
+	private String publicToken = "";
+	private PlaidClient plaidClient;
 
-	@RequestMapping(value = "/get_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<HashMap<String, Object>> getAccessToken(@Valid @RequestBody Map<String, Object> body) throws IOException {
-		HashMap<String, Object> resp = new HashMap<String, Object>();
-		
-		String publicToken = (String) body.get("publicToken");
-
-		PlaidClient pc = PlaidClient.newBuilder().sandboxBaseUrl().clientIdAndSecret(plaidClientId, plaidSecretKey)
+	public PlaidController() {
+		this.plaidClient = PlaidClient.newBuilder().sandboxBaseUrl().clientIdAndSecret(plaidClientId, plaidSecretKey)
 				.publicKey(plaidPublicKey).logLevel(HttpLoggingInterceptor.Level.BODY).build();
+	}
 
-		// Synchronously exchange a Link public_token for an API access_token
-		// Required request parameters are always Request object constructor arguments
-		retrofit2.Response<ItemPublicTokenExchangeResponse> response = pc.service()
+	@RequestMapping(value = "/fetch_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> fetchAccessToken(@Valid @RequestBody Map<String, String> body)
+			throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+		String publicToken = body.get("publicToken");
+
+		// Ask item/public_token/exchange for an access token
+		Response<ItemPublicTokenExchangeResponse> response = plaidClient.service()
 				.itemPublicTokenExchange(new ItemPublicTokenExchangeRequest(publicToken)).execute();
 
-		String accessToken = "";
 		if (response.isSuccessful()) {
 			accessToken = response.body().getAccessToken();
 		}
 
 		resp.put("status", "success");
 		resp.put("accessToken", accessToken);
-		
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
+	// ask /item/public_token/create with an access_token to generate a new
+	// public_token
+	public ResponseEntity<HashMap<String, Object>> fetchPublicToken() throws IOException {
+		Response<ItemPublicTokenCreateResponse> response = plaidClient.service()
+				.itemPublicTokenCreate(new ItemPublicTokenCreateRequest(accessToken)).execute();
 
-//	public String createPlaidClient() throws IOException {
+		if (response.isSuccessful()) {
+			publicToken = response.body().getPublicToken();
+		}
+
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+		resp.put("status", "success");
+		resp.put("publicToken", publicToken);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	public String getPublicToken() {
+		return publicToken;
+	}
+
+	public String getAccessToken() {
+		return accessToken;
+	}
 
 
 }
