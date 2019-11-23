@@ -37,13 +37,12 @@ public class PlaidController {
 	@Value("${plaid.client.id}")
 	private String plaidClientId;
 
-	private String accessToken = "";
-	private String publicToken = "";
 	private PlaidClient plaidClient;
 
 	public PlaidController() {
 	}
 
+	// create plaid client
 	@PostConstruct
 	public void init() {
 		this.plaidClient = PlaidClient.newBuilder().sandboxBaseUrl()
@@ -51,16 +50,18 @@ public class PlaidController {
 				.logLevel(HttpLoggingInterceptor.Level.BODY).build();
 	}
 
+	// hit up plaid for an access token
 	@RequestMapping(value = "/fetch_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> fetchAccessToken(@Valid @RequestBody Map<String, String> body)
 			throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
 		String publicToken = body.get("publicToken");
 
-		// Ask item/public_token/exchange for an access token
+		// Ask (/item/public_token/exchange) for an access token using the public token
 		Response<ItemPublicTokenExchangeResponse> response = plaidClient.service()
 				.itemPublicTokenExchange(new ItemPublicTokenExchangeRequest(publicToken)).execute();
 
+		String accessToken = "";
 		if (response.isSuccessful()) {
 			accessToken = response.body().getAccessToken();
 		}
@@ -70,12 +71,17 @@ public class PlaidController {
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
-	// ask /item/public_token/create with an access_token to generate a new
+	// POST to /item/public_token/create with an access_token to generate a new
 	// public_token
-	public ResponseEntity<HashMap<String, Object>> fetchPublicToken() throws IOException {
+	@RequestMapping(value = "/fetch-public-token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> fetchPublicToken(@Valid @RequestBody Map<String, String> body)
+			throws IOException {
+		String accessToken = body.get("accessToken");
+
 		Response<ItemPublicTokenCreateResponse> response = plaidClient.service()
 				.itemPublicTokenCreate(new ItemPublicTokenCreateRequest(accessToken)).execute();
 
+		String publicToken = "";
 		if (response.isSuccessful()) {
 			publicToken = response.body().getPublicToken();
 		}
@@ -86,14 +92,4 @@ public class PlaidController {
 
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
-
-	public String getPublicToken() {
-		return publicToken;
-	}
-
-	public String getAccessToken() {
-		return accessToken;
-	}
-
-
 }
