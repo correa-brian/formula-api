@@ -85,7 +85,6 @@ public class PlaidController {
 	private String plaidClientId;
 
 	private PlaidClient plaidClient;
-
 	private String accessToken;
 
 	public PlaidController() {
@@ -99,10 +98,11 @@ public class PlaidController {
 				.logLevel(HttpLoggingInterceptor.Level.BODY).build();
 	}
 
-	// hit up plaid for an access token
+	// /item/public_token/exchange
 	@RequestMapping(value = "/get_access_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getAccessToken(@Valid @RequestBody Map<String, Object> body)
 			throws IOException {
+
 		HashMap<String, Object> resp = new HashMap<String, Object>();
 		String publicToken = (String) body.get("publicToken");
 
@@ -116,14 +116,15 @@ public class PlaidController {
 			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 		}
 
-		accessToken = "";
-		String itemId = "";
+		ItemPublicTokenExchangeResponse responseBody = response.body();
 		if (response.isSuccessful()) {
-			accessToken = response.body().getAccessToken();
-			itemId = response.body().getItemId();
+			accessToken = responseBody.getAccessToken();
+
 		}
 
-		resp.put("status", "success");
+		String requestId = responseBody.getRequestId();
+		String itemId = responseBody.getItemId();
+		resp.put("requestId", requestId);
 		resp.put("accessToken", accessToken);
 		resp.put("itemId", itemId);
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
@@ -140,21 +141,21 @@ public class PlaidController {
 			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 		}
 
-		List<Account> accounts = response.body().getAccounts();
-		String requestId = response.body().getRequestId();
-		ItemStatus item = response.body().getItem();
-		Numbers numbers = response.body().getNumbers();
+		AuthGetResponse body = response.body();
+		List<Account> accounts = body.getAccounts();
+		String requestId = body.getRequestId();
+		ItemStatus item = body.getItem();
+		Numbers numbers = body.getNumbers();
 
 		resp.put("accounts", accounts);
 		resp.put("requestId", requestId);
 		resp.put("item", item);
 		resp.put("numbers", numbers);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
-	// fetch transactions for the last 30 days
 	// /transactions/
+	// fetch transactions for the last 30 days
 	@RequestMapping(value = "/transactions", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getTransactions() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -173,16 +174,16 @@ public class PlaidController {
 			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 		}
 
-		List<Account> accounts = response.body().getAccounts();
-		List<Transaction> transactions = response.body().getTransactions();
-		String requestId = response.body().getRequestId();
-		ItemStatus item = response.body().getItem();
+		TransactionsGetResponse body = response.body();
+		List<Account> accounts = body.getAccounts();
+		List<Transaction> transactions = body.getTransactions();
+		String requestId = body.getRequestId();
+		ItemStatus item = body.getItem();
 
 		resp.put("accounts", accounts);
 		resp.put("transactions", transactions);
 		resp.put("requestId", requestId);
 		resp.put("item", item);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -190,8 +191,8 @@ public class PlaidController {
 	// /balance/
 	@RequestMapping(value = "/balance", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getBalance() throws IOException {
-		HashMap<String, Object> resp = new HashMap<String, Object>();
 
+		HashMap<String, Object> resp = new HashMap<String, Object>();
 		Response<AccountsBalanceGetResponse> response = plaidClient.service()
 				.accountsBalanceGet(new AccountsBalanceGetRequest(accessToken)).execute();
 
@@ -208,7 +209,6 @@ public class PlaidController {
 		resp.put("accounts", accounts);
 		resp.put("requestId", requestId);
 		resp.put("item", item);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -260,7 +260,6 @@ public class PlaidController {
 		resp.put("income", income);
 		resp.put("requestId", requestId);
 		resp.put("item", item);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -288,7 +287,6 @@ public class PlaidController {
 		resp.put("assetReportId", assetReportId);
 		resp.put("assetReportToken", assetReportToken);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -315,7 +313,6 @@ public class PlaidController {
 		resp.put("assetReport", assetReport);
 		resp.put("warnings", warnings);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -344,7 +341,6 @@ public class PlaidController {
 		resp.put("accounts", accounts);
 		resp.put("item", item);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -380,7 +376,6 @@ public class PlaidController {
 		resp.put("accounts", accounts);
 		resp.put("item", item);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -407,7 +402,6 @@ public class PlaidController {
 		resp.put("accounts", accounts);
 		resp.put("item", item);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -432,7 +426,6 @@ public class PlaidController {
 		resp.put("accounts", accounts);
 		resp.put("item", item);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -458,7 +451,6 @@ public class PlaidController {
 		resp.put("status", status);
 		resp.put("item", item);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
@@ -481,38 +473,35 @@ public class PlaidController {
 
 		resp.put("isRemoved", isRemoved);
 		resp.put("requestId", requestId);
-
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
 	// /categories
 	@RequestMapping(value = "/categories", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-		public ResponseEntity<HashMap<String, Object>> getCategories() throws IOException {
-			HashMap<String, Object> resp = new HashMap<String, Object>();
-
+	public ResponseEntity<HashMap<String, Object>> getCategories() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
 		Response<CategoriesGetResponse> response = plaidClient.service().categoriesGet(new CategoriesGetRequest())
 				.execute();
 
-			if (response.errorBody() != null) {
-				resp.put("error", response.errorBody());
-				return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
-			}
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
 
 		CategoriesGetResponse body = response.body();
 		List<Category> categories = body.getCategories();
-			String requestId = body.getRequestId();
+		String requestId = body.getRequestId();
 
 		resp.put("categories", categories);
-			resp.put("requestId", requestId);
-			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
-		}
+		resp.put("requestId", requestId);
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
 
 	// POST to /item/public_token/create with an access_token to generate a new
 	// public_token
 	@RequestMapping(value = "/get_public_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<HashMap<String, Object>> fetchPublicToken(@Valid @RequestBody Map<String, String> body)
-			throws IOException {
-		String accessToken = body.get("accessToken");
+	public ResponseEntity<HashMap<String, Object>> fetchPublicToken() throws IOException {
 
 		Response<ItemPublicTokenCreateResponse> response = plaidClient.service()
 				.itemPublicTokenCreate(new ItemPublicTokenCreateRequest(accessToken)).execute();
@@ -522,10 +511,15 @@ public class PlaidController {
 			publicToken = response.body().getPublicToken();
 		}
 
-		HashMap<String, Object> resp = new HashMap<String, Object>();
-		resp.put("status", "success");
-		resp.put("publicToken", publicToken);
+		ItemPublicTokenCreateResponse body = response.body();
+		Date expiration = body.getExpiration();
+		publicToken = body.getPublicToken();
+		String requestId = body.getRequestId();
 
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+		resp.put("requestID", requestId);
+		resp.put("expiration", expiration);
+		resp.put("publicToken", publicToken);
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
