@@ -23,29 +23,49 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.plaid.client.PlaidClient;
 import com.plaid.client.request.AccountsBalanceGetRequest;
+import com.plaid.client.request.AccountsGetRequest;
 import com.plaid.client.request.AssetReportCreateRequest;
 import com.plaid.client.request.AssetReportGetRequest;
 import com.plaid.client.request.AuthGetRequest;
+import com.plaid.client.request.CategoriesGetRequest;
 import com.plaid.client.request.IdentityGetRequest;
 import com.plaid.client.request.IncomeGetRequest;
+import com.plaid.client.request.InvestmentsHoldingsGetRequest;
+import com.plaid.client.request.InvestmentsTransactionsGetRequest;
+import com.plaid.client.request.ItemGetRequest;
 import com.plaid.client.request.ItemPublicTokenCreateRequest;
 import com.plaid.client.request.ItemPublicTokenExchangeRequest;
+import com.plaid.client.request.ItemRemoveRequest;
+import com.plaid.client.request.LiabilitiesGetRequest;
 import com.plaid.client.request.TransactionsGetRequest;
 import com.plaid.client.response.Account;
 import com.plaid.client.response.AccountsBalanceGetResponse;
+import com.plaid.client.response.AccountsGetResponse;
 import com.plaid.client.response.AssetReportCreateResponse;
 import com.plaid.client.response.AssetReportGetResponse;
 import com.plaid.client.response.AssetReportGetResponse.AssetReport;
 import com.plaid.client.response.AssetReportGetResponse.Warning;
 import com.plaid.client.response.AuthGetResponse;
 import com.plaid.client.response.AuthGetResponse.Numbers;
+import com.plaid.client.response.CategoriesGetResponse;
+import com.plaid.client.response.CategoriesGetResponse.Category;
 import com.plaid.client.response.IdentityGetResponse;
 import com.plaid.client.response.IdentityGetResponse.AccountWithOwners;
 import com.plaid.client.response.IncomeGetResponse;
 import com.plaid.client.response.IncomeGetResponse.Income;
+import com.plaid.client.response.InvestmentsHoldingsGetResponse;
+import com.plaid.client.response.InvestmentsHoldingsGetResponse.Holding;
+import com.plaid.client.response.InvestmentsTransactionsGetResponse;
+import com.plaid.client.response.InvestmentsTransactionsGetResponse.InvestmentTransaction;
+import com.plaid.client.response.ItemGetResponse;
 import com.plaid.client.response.ItemPublicTokenCreateResponse;
 import com.plaid.client.response.ItemPublicTokenExchangeResponse;
+import com.plaid.client.response.ItemRemoveResponse;
 import com.plaid.client.response.ItemStatus;
+import com.plaid.client.response.ItemStatusStatus;
+import com.plaid.client.response.LiabilitiesGetResponse;
+import com.plaid.client.response.LiabilitiesGetResponse.Liabilities;
+import com.plaid.client.response.Security;
 import com.plaid.client.response.TransactionsGetResponse;
 import com.plaid.client.response.TransactionsGetResponse.Transaction;
 
@@ -109,7 +129,7 @@ public class PlaidController {
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
-	// Authenticate against an item (aka financial institution)
+	// Authenticate against an item (aka financial institution). /auth/
 	@RequestMapping(value = "/auth", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getAuth() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -134,6 +154,7 @@ public class PlaidController {
 	}
 
 	// fetch transactions for the last 30 days
+	// /transactions/
 	@RequestMapping(value = "/transactions", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getTransactions() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -166,6 +187,7 @@ public class PlaidController {
 	}
 
 	// get the balance for a set of accounts
+	// /balance/
 	@RequestMapping(value = "/balance", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getBalance() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -191,6 +213,7 @@ public class PlaidController {
 	}
 
 	// get the identity info for a set of accounts
+	// /identity/
 	@RequestMapping(value = "/identity", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getIdentity() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -216,6 +239,7 @@ public class PlaidController {
 	}
 
 	// income info for a set of accounts
+	// /income/
 	@RequestMapping(value = "/income", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<HashMap<String, Object>> getIncome() throws IOException {
 		HashMap<String, Object> resp = new HashMap<String, Object>();
@@ -295,13 +319,193 @@ public class PlaidController {
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
 
-	// TODO: refresh asset report
-	// TODO: filter request for asset report
-	// TODO: asset report pdf
-	// TODO: write audit copy endpoint
+	// /investments/
+	@RequestMapping(value = "/investments", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getInvestments() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
 
-	// TODO: investments endpoint
-	// TODO: liabilities endpoint
+		Response<InvestmentsHoldingsGetResponse> response = plaidClient.service()
+				.investmentsHoldingsGet(new InvestmentsHoldingsGetRequest(accessToken)).execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		InvestmentsHoldingsGetResponse body = response.body();
+		List<Holding> holdings = body.getHoldings();
+		List<Security> securities = body.getSecurities();
+		List<Account> accounts = body.getAccounts();
+		ItemStatus item = body.getItem();
+		String requestId = body.getRequestId();
+
+		resp.put("hldings", holdings);
+		resp.put("securities", securities);
+		resp.put("accounts", accounts);
+		resp.put("item", item);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /investments/transactions/
+	@RequestMapping(value = "/investments/transactions", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getInvestmentsTransactions() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		// date setup
+		Instant now = Instant.now();
+		Instant before = now.minus(Duration.ofDays(30));
+		Date todayMinus30 = Date.from(before);
+		Date today = Date.from(now);
+
+		Response<InvestmentsTransactionsGetResponse> response = plaidClient.service()
+				.investmentsTransactionsGet(new InvestmentsTransactionsGetRequest(accessToken, todayMinus30, today))
+				.execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		InvestmentsTransactionsGetResponse body = response.body();
+		List<InvestmentTransaction> investmentTransactions = body.getInvestmentTransactions();
+		List<Security> securities = body.getSecurities();
+		List<Account> accounts = body.getAccounts();
+		ItemStatus item = body.getItem();
+		String requestId = body.getRequestId();
+
+		resp.put("investmentTransactions", investmentTransactions);
+		resp.put("securities", securities);
+		resp.put("accounts", accounts);
+		resp.put("item", item);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /liabilities/
+	@RequestMapping(value = "/liabilities", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getLiabilities() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		Response<LiabilitiesGetResponse> response = plaidClient.service()
+				.liabilitiesGet(new LiabilitiesGetRequest(accessToken)).execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		LiabilitiesGetResponse body = response.body();
+		Liabilities liabilities = body.getLiabilities();
+		List<Account> accounts = body.getAccounts();
+		ItemStatus item = body.getItem();
+		String requestId = body.getRequestId();
+
+		resp.put("liabilities", liabilities);
+		resp.put("accounts", accounts);
+		resp.put("item", item);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /accounts/
+	@RequestMapping(value = "/accounts", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getAccounts() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		Response<AccountsGetResponse> response = plaidClient.service().accountsGet(new AccountsGetRequest(accessToken))
+				.execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		AccountsGetResponse body = response.body();
+		List<Account> accounts = body.getAccounts();
+		ItemStatus item = body.getItem();
+		String requestId = body.getRequestId();
+
+		resp.put("accounts", accounts);
+		resp.put("item", item);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /item/
+	// can also be used to get the item status
+	@RequestMapping(value = "/item", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> getItem() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		Response<ItemGetResponse> response = plaidClient.service().itemGet(new ItemGetRequest(accessToken))
+				.execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		ItemGetResponse body = response.body();
+		ItemStatusStatus status = body.getStatus();
+		ItemStatus item = body.getItem();
+		String requestId = body.getRequestId();
+
+		resp.put("status", status);
+		resp.put("item", item);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /item/remove
+	@RequestMapping(value = "/item/remove", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<HashMap<String, Object>> removeItem() throws IOException {
+		HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		Response<ItemRemoveResponse> response = plaidClient.service().itemRemove(new ItemRemoveRequest(accessToken))
+				.execute();
+
+		if (response.errorBody() != null) {
+			resp.put("error", response.errorBody());
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
+
+		ItemRemoveResponse body = response.body();
+		Boolean isRemoved = body.getRemoved();
+		String requestId = body.getRequestId();
+
+		resp.put("isRemoved", isRemoved);
+		resp.put("requestId", requestId);
+
+		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+	}
+
+	// /categories
+	@RequestMapping(value = "/categories", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
+		public ResponseEntity<HashMap<String, Object>> getCategories() throws IOException {
+			HashMap<String, Object> resp = new HashMap<String, Object>();
+
+		Response<CategoriesGetResponse> response = plaidClient.service().categoriesGet(new CategoriesGetRequest())
+				.execute();
+
+			if (response.errorBody() != null) {
+				resp.put("error", response.errorBody());
+				return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+			}
+
+		CategoriesGetResponse body = response.body();
+		List<Category> categories = body.getCategories();
+			String requestId = body.getRequestId();
+
+		resp.put("categories", categories);
+			resp.put("requestId", requestId);
+			return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
+		}
 
 	// POST to /item/public_token/create with an access_token to generate a new
 	// public_token
@@ -324,4 +528,11 @@ public class PlaidController {
 
 		return new ResponseEntity<HashMap<String, Object>>(resp, HttpStatus.OK);
 	}
+
+	// TODO: update item webhook
+	// TODO: rotate access token
+	// TODO: refresh asset report, filter request for asset reports, get asset
+	// report pdf
+	// TODO: write audit copy endpoint (provide docs to third party)
+
 }
