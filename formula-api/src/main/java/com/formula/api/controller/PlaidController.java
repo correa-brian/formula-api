@@ -5,7 +5,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.formula.api.model.plaid.AccessReportRequest;
+import com.formula.api.model.plaid.AccessTokenRequest;
 import com.formula.api.model.plaid.PlaidAPIError;
 import com.plaid.client.PlaidClient;
 import com.plaid.client.request.AccountsBalanceGetRequest;
@@ -65,6 +66,18 @@ import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Response;
 
+// TODO: update item webhook
+// TODO: rotate access token
+// TODO: refresh asset report, filter request for asset reports, get asset
+// report pdf
+// TODO: write audit copy endpoint (provide docs to third party)
+
+/**
+ * Plaid API Wrapper
+ * 
+ * @author Brian
+ *
+ */
 @RestController
 public class PlaidController {
 
@@ -79,7 +92,6 @@ public class PlaidController {
 
 	private final ObjectMapper mapper = new ObjectMapper();
 	private PlaidClient plaidClient;
-	private String accessToken;
 
 	public PlaidController() {
 		mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -95,9 +107,8 @@ public class PlaidController {
 				.logLevel(HttpLoggingInterceptor.Level.BODY).build();
 	}
 
-
 	/**
-	 * Exchanges the public token for an access token.
+	 * Exchanges the Formula public token for an access token.
 	 * 
 	 * @param requestBody
 	 * @return
@@ -129,11 +140,22 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(responseBody, HttpStatus.OK);
 	}
 
-	// Authenticate against an item (aka financial institution). /auth/
+	/**
+	 * Requests authentication info from an item (aka financial institution: routing
+	 * number, account id, ACH, etc.)
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/auth", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getAuth() throws IOException {
-		Response<AuthGetResponse> plaidResponse = plaidClient.service().authGet(new AuthGetRequest(accessToken))
+	public ResponseEntity<BaseResponse> getAuth(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
+
+		Response<AuthGetResponse> plaidResponse = plaidClient.service()
+				.authGet(new AuthGetRequest(requestBody.accessToken))
 				.execute();
+
 		// handle error
 		if (plaidResponse.errorBody() != null) {
 			ResponseBody msg = plaidResponse.errorBody();
@@ -149,10 +171,16 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /transactions/
-	// fetch transactions for the last 30 days
+	/**
+	 * Fetches transactions for the last 30 days.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/transactions", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getTransactions() throws IOException {
+	public ResponseEntity<BaseResponse> getTransactions(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 		// date setup
 		Instant now = Instant.now();
 		Instant before = now.minus(Duration.ofDays(30));
@@ -160,7 +188,7 @@ public class PlaidController {
 		Date today = Date.from(now);
 
 		Response<TransactionsGetResponse> plaidResponse = plaidClient.service()
-				.transactionsGet(new TransactionsGetRequest(accessToken, todayMinus30, today)).execute();
+				.transactionsGet(new TransactionsGetRequest(requestBody.accessToken, todayMinus30, today)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -177,12 +205,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// get the balance for a set of accounts
-	// /balance/
+	/**
+	 * Get the balance for a set of accounts.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/balance", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getBalance() throws IOException {
+	public ResponseEntity<BaseResponse> getBalance(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
+
 		Response<AccountsBalanceGetResponse> plaidResponse = plaidClient.service()
-				.accountsBalanceGet(new AccountsBalanceGetRequest(accessToken)).execute();
+				.accountsBalanceGet(new AccountsBalanceGetRequest(requestBody.accessToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -199,12 +234,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// get the identity info for a set of accounts
-	// /identity/
+	/**
+	 * Fetches identity info for a set of accounts.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/identity", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getIdentity() throws IOException {
+	public ResponseEntity<BaseResponse> getIdentity(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
+
 		Response<IdentityGetResponse> plaidResponse = plaidClient.service()
-				.identityGet(new IdentityGetRequest(accessToken)).execute();
+				.identityGet(new IdentityGetRequest(requestBody.accessToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -221,11 +263,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// income info for a set of accounts
-	// /income/
+	/**
+	 * Income info for a set of accounts.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/income", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getIncome() throws IOException {
-		Response<IncomeGetResponse> plaidResponse = plaidClient.service().incomeGet(new IncomeGetRequest(accessToken))
+	public ResponseEntity<BaseResponse> getIncome(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
+
+		Response<IncomeGetResponse> plaidResponse = plaidClient.service()
+				.incomeGet(new IncomeGetRequest(requestBody.accessToken))
 				.execute();
 
 		// handle error
@@ -243,12 +293,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// create asset report
+	/**
+	 * Creates an assert report. TODO: add support for list of access tokens.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/create_asset_report", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> createAssetReport() throws IOException {
+	public ResponseEntity<BaseResponse> createAssetReport(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		List<String> accessTokens = new ArrayList<String>();
-		accessTokens.add(accessToken);
+		accessTokens.add(requestBody.accessToken);
 
 		Response<AssetReportCreateResponse> plaidResponse = plaidClient.service()
 				.assetReportCreate(new AssetReportCreateRequest(accessTokens, 60)).execute();
@@ -268,14 +325,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// get asset report
+	/**
+	 * Fetches an asset report.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/get_asset_report", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getAssetReport(@Valid @RequestBody Map<String, Object> body)
+	public ResponseEntity<BaseResponse> getAssetReport(@Valid @RequestBody AccessReportRequest requestBody)
 			throws IOException {
 
-		String accessReportToken = (String) body.get("assetReportToken");
 		Response<AssetReportGetResponse> plaidResponse = plaidClient.service()
-				.assetReportGet(new AssetReportGetRequest(accessReportToken)).execute();
+				.assetReportGet(new AssetReportGetRequest(requestBody.assetReportToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -292,12 +354,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(responseBody, HttpStatus.OK);
 	}
 
-	// /investments/
+	/**
+	 * Fetches all investments associated with accessToken.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/investments", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getInvestments() throws IOException {
+	public ResponseEntity<BaseResponse> getInvestments(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		Response<InvestmentsHoldingsGetResponse> plaidResponse = plaidClient.service()
-				.investmentsHoldingsGet(new InvestmentsHoldingsGetRequest(accessToken)).execute();
+				.investmentsHoldingsGet(new InvestmentsHoldingsGetRequest(requestBody.accessToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -314,9 +383,16 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /investments/transactions/
+	/**
+	 * Retrieves all transactions for investments in last 30 days.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/investments/transactions", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getInvestmentsTransactions() throws IOException {
+	public ResponseEntity<BaseResponse> getInvestmentsTransactions(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		// date setup
 		Instant now = Instant.now();
@@ -325,7 +401,8 @@ public class PlaidController {
 		Date today = Date.from(now);
 
 		Response<InvestmentsTransactionsGetResponse> plaidResponse = plaidClient.service()
-				.investmentsTransactionsGet(new InvestmentsTransactionsGetRequest(accessToken, todayMinus30, today))
+				.investmentsTransactionsGet(
+						new InvestmentsTransactionsGetRequest(requestBody.accessToken, todayMinus30, today))
 				.execute();
 
 		// handle error
@@ -343,12 +420,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /liabilities/
+	/**
+	 * Returns liabilities.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/liabilities", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getLiabilities() throws IOException {
+	public ResponseEntity<BaseResponse> getLiabilities(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		Response<LiabilitiesGetResponse> plaidResponse = plaidClient.service()
-				.liabilitiesGet(new LiabilitiesGetRequest(accessToken)).execute();
+				.liabilitiesGet(new LiabilitiesGetRequest(requestBody.accessToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -365,12 +449,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /accounts/
+	/**
+	 * Fetches all accounts.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/accounts", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getAccounts() throws IOException {
+	public ResponseEntity<BaseResponse> getAccounts(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		Response<AccountsGetResponse> plaidResponse = plaidClient.service()
-				.accountsGet(new AccountsGetRequest(accessToken))
+				.accountsGet(new AccountsGetRequest(requestBody.accessToken))
 				.execute();
 
 		// handle error
@@ -389,12 +480,18 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /item/
-	// can also be used to get the item status
+	/**
+	 * Returns item information. TODO: support getting item status.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/item", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> getItem() throws IOException {
+	public ResponseEntity<BaseResponse> getItem(@Valid @RequestBody AccessTokenRequest requestBody) throws IOException {
 
-		Response<ItemGetResponse> plaidResponse = plaidClient.service().itemGet(new ItemGetRequest(accessToken))
+		Response<ItemGetResponse> plaidResponse = plaidClient.service()
+				.itemGet(new ItemGetRequest(requestBody.accessToken))
 				.execute();
 
 		// handle error
@@ -412,13 +509,18 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /item/remove
+	/**
+	 * Removes an item from the accessToken.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/item/remove", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> removeItem() throws IOException {
-		HashMap<String, Object> resp = new HashMap<String, Object>();
-
+	public ResponseEntity<BaseResponse> removeItem(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 		Response<ItemRemoveResponse> plaidResponse = plaidClient.service()
-				.itemRemove(new ItemRemoveRequest(accessToken))
+				.itemRemove(new ItemRemoveRequest(requestBody.accessToken))
 				.execute();
 
 		// handle error
@@ -437,7 +539,12 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// /categories
+	/**
+	 * Returns a set of categories. Per Plaid docs, it doesn't seem to be used.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/categories", method = RequestMethod.GET, consumes = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<BaseResponse> getCategories() throws IOException {
 		Response<CategoriesGetResponse> plaidResponse = plaidClient.service().categoriesGet(new CategoriesGetRequest())
@@ -459,13 +566,19 @@ public class PlaidController {
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
 
-	// POST to /item/public_token/create with an access_token to generate a new
-	// public_token
+	/**
+	 * Exchange an accessToken for a publicToken.
+	 * 
+	 * @param requestBody
+	 * @return
+	 * @throws IOException
+	 */
 	@RequestMapping(value = "/get_public_token", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<BaseResponse> fetchPublicToken() throws IOException {
+	public ResponseEntity<BaseResponse> fetchPublicToken(@Valid @RequestBody AccessTokenRequest requestBody)
+			throws IOException {
 
 		Response<ItemPublicTokenCreateResponse> plaidResponse = plaidClient.service()
-				.itemPublicTokenCreate(new ItemPublicTokenCreateRequest(accessToken)).execute();
+				.itemPublicTokenCreate(new ItemPublicTokenCreateRequest(requestBody.accessToken)).execute();
 
 		// handle error
 		if (plaidResponse.errorBody() != null) {
@@ -481,11 +594,5 @@ public class PlaidController {
 		ItemPublicTokenCreateResponse body = plaidResponse.body();
 		return new ResponseEntity<BaseResponse>(body, HttpStatus.OK);
 	}
-
-	// TODO: update item webhook
-	// TODO: rotate access token
-	// TODO: refresh asset report, filter request for asset reports, get asset
-	// report pdf
-	// TODO: write audit copy endpoint (provide docs to third party)
 
 }
