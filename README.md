@@ -1,8 +1,9 @@
 # Formula API
 
-### Setup 
+### Setup
 - Clone the repository
-- Start the webserver
+- Copy `docker-compose.yml` to an override docker file `cp docker-compose.yml docker-compose.override.yml` and fill in environment variables
+- Start the webserver using command below or as a gradle project in an IDE
 
 ```
 docker-compose up
@@ -12,7 +13,7 @@ docker-compose up
 
 #### Extra Commands / Resources
 
-- Using gradle wrapper 
+- Using gradle wrapper
 
 ```
 ./gradlew build
