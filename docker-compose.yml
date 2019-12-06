@@ -4,6 +4,14 @@ services:
       image: formula-api:latest
       build:
         context: ./formula-api
+      environment:
+        - MYSQL_URL=
+        - MYSQL_USERNAME=
+        - MYSQL_PASSWORD=
+        - PLAID_ENV=
+        - PLAID_CLIENT_ID=
+        - PLAID_PUBLIC_KEY=
+        - PLAID_SECRET_KEY=
+        - PLAID_API_URL=
       ports:
         - "8080:8080"
-
