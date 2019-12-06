@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
   <body>
-    <p>PLaid login page!!</p>
+    <p>Plaid login page</p>
     <p>Enter account creds below</p>
     <button id="link-button">Link Account</button>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
@@ -15,15 +15,15 @@
       (function($) {
 
         var handler = Plaid.create({
-          clientName: 'Plaid Quickstart',
+          clientName: 'Formula API',
           // Optional, specify an array of ISO-3166-1 alpha-2 country
           // codes to initialize Link; European countries will have GDPR
           // consent panel
           countryCodes: ['US'],
           env: 'sandbox',
-          // public key
+          // Replace public key below
           key: '$PUBLIC_KEY',
-          product: ['auth'],
+          product: ['transactions', 'assets'],
           // Optional, use webhooks to get transaction and error updates
           webhook: 'https://requestb.in',
           // Optional, specify a language to localize Link
@@ -33,7 +33,6 @@
           // userLegalName: 'John Appleseed',
           // userEmailAddress: 'jappleseed@yourapp.com',
           onLoad: function() {
-            console.log("load");
             // Optional, called when Link loads
           },
           onSuccess: function(public_token, metadata) {
@@ -43,6 +42,9 @@
             // Select Account view is enabled.
             var resp = {};
             resp['publicToken'] = public_token;
+            resp['institution'] = metadata['institution'];
+            resp['accounts'] = metadata['accounts'];
+            resp['linkSessionId'] = metadata['link_session_id'];
 
             $.ajax({
               url: '/get_access_token',
@@ -52,7 +54,6 @@
             });
           },
           onExit: function(err, metadata) {
-            console.log("exit flow");
             // The user exited the Link flow.
             if (err != null) {
               // The user encountered a Plaid API error prior to exiting.
@@ -62,7 +63,6 @@
             // Storing this information can be helpful for support.
           },
           onEvent: function(eventName, metadata) {
-            console.log("when something happens");
             // Optionally capture Link flow events, streamed through
             // this callback as your users connect an Item to Plaid.
             // For example:
@@ -77,7 +77,6 @@
         });
 
         $('#link-button').on('click', function(e) {
-          console.log("click the link");
           handler.open();
         });
       })(jQuery);
